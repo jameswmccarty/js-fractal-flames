@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8"/>
+<title>Fractal Flame Explorer</title>
+<body>
+
+<style>
+
+canvas {
+	padding: 2px;
+	border-style: dotted;
+	border-width: 1px;
+	border-color: gray;
+}
+
+
+td { 
+	border: 0px;
+	overflow: hidden;
+	color: black;
+}
+
+tr:nth-child(2n+3) {
+	background: #f0f0f0;
+}
+
+tr:nth-child(even) {
+	background: #e3e0cc;
+}
+
+body {
+	background-color: #c5d5c5;
+}
+
+h1, h2, h3 {
+	color: #3e4444;
+	text-transform: capitalize;
+}
+
+.coeff {
+	width: 6em;
+}
+
+.weight {
+	width: 6em;
+}
+
+.rm {
+	width: 2em;
+}
+
+.rgb {
+	width: 4em;
+}
+
+</style>
+<h1>Global Image Options</h1>
+<table>
+	<tr>
+		<th>Option</th>
+		<th>Setting</th>
+		<th>Option</th>
+		<th>Setting</th>
+	</tr>
+	<tr>
+		<td>X-axis minimum</td>
+		<td><input class="weight" id="xmin" type="number" value="-5"></td>
+		<td>X-axis maximum</td>
+		<td><input class="weight" id="xmax" type="number" value="5"></td>
+	</tr>
+	<tr>
+		<td>Y-axis minimum</td>
+		<td><input class="weight" id="ymin" type="number" value="-5"></td>
+		<td>Y-axis maximum</td>
+		<td><input class="weight" id="ymax" type="number" value="5"></td>
+	</tr>
+	<tr>
+		<td>X-axis resolution</td>
+		<td><input class="weight" id="xres" type="number" min="1" step="1" value="1000"></td>
+		<td>Y-axis resolution</td>
+		<td><input class="weight" id="yres" type="number" min="1" step="1" value="1000"></td>
+	</tr>
+	<tr>
+		<td>Samples</td>
+		<td><input class="weight" id="samp" type="number" value="500"></td>
+		<td>Iterations</td>
+		<td><input class="weight" id="itt" type="number" value="2000"></td>
+	</tr>
+	<tr>
+		<td>Symmetry axis</td>
+		<td><input class="weight" id="sym" type="number" value="1" min="1" step="1"></td>
+		<td>Supersample factor</td>
+		<td><input class="weight" id="sup" type="number" value="1" min="1" step="1"></td>
+	</tr>
+	<tr>
+		<td>Invert colors</td>
+		<td><input class="weight" id="invert" type="checkbox"></td>
+		<td>Gamma factor</td>
+		<td><input class="weight" id="gamma" type="number" value="2.2" min="1.0"></td>
+	</tr>
+	
+</table>
+<h1>Transforms</h1>
+<table>
+	<tr>
+		<th>Transform</th>
+		<th>Weight</th>
+		<th>Total %</th>
+		<th>Transform</th>
+		<th>Weight</th>
+		<th>Total %</th>
+		<th>Transform</th>
+		<th>Weight</th>
+		<th>Total %</th>
+	</tr>
+	<tr>
+		<td>Linear</td>
+		<td><input class="weight" type="number" min="0" value="1" step="1" id="t0" onchange="weight_percent();"></td>
+		<td><span id="t0_val"></span></td>
+		<td>Sinusoidal</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t1" onchange="weight_percent();"></td>
+		<td><span id="t1_val"></span></td>
+		<td>Spherical</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t2" onchange="weight_percent();"></td>
+		<td><span id="t2_val"></span></td>
+	</tr>
+	<tr>
+		<td>Swirl</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t3" onchange="weight_percent();"></td>
+		<td><span id="t3_val"></span></td>
+		<td>Horseshoe</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t4" onchange="weight_percent();"></td>
+		<td><span id="t4_val"></span></td>
+		<td>Polar</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t5" onchange="weight_percent();"></td>
+		<td><span id="t5_val"></span></td>
+	</tr>
+	<tr>
+		<td>Handkerchief</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t6" onchange="weight_percent();"></td>
+		<td><span id="t6_val"></span></td>
+		<td>Heart</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t7" onchange="weight_percent();"></td>
+		<td><span id="t7_val"></span></td>
+		<td>Disk</td>
+		<td><input class="weight" type="number" min="0" value="0" step="1" id="t8" onchange="weight_percent();"></td>
+		<td><span id="t8_val"></span></td>
+	</tr>
+</table>
+<h1>Transform Parameters</h1>
+<table>
+	<tbody id="newlink">
+		<tr>
+			<th></th>
+			<th colspan="6">Affine Transform Coefficients</th>
+			<th></th>
+			<th colspan="3">Color</th>
+		</tr>
+		<tr>
+			<td><input class="rm" type="button" value="+" onclick="new_link();"/></td>
+			<th>a</th>
+			<th>b</th>
+			<th>c</th>
+			<th>d</th>
+			<th>e</th>
+			<th>f</th>
+			<th>|</th>
+			<th>Red</th>
+			<th>Green</th>
+			<th>Blue</th>
+			<th>Swatch</th>
+		</tr>
+	</tbody>
+</table>
+
+<input type="button" id="render" value="render" onclick="render();" />
+<br/>
+<br/>
+
+<img src='' id="out_png" />
+
+
+<script>
+var ct = 0;
+window.onload = page_setup();
+
+class Weight {
+	constructor(a, b, c, d, e, f, R, G, B) {
+	this.a = Number(a);
+	this.b = Number(b);
+	this.c = Number(c);
+	this.d = Number(d);
+	this.e = Number(e);
+	this.f = Number(f);
+	this.R = Number(R);
+	this.G = Number(G);
+	this.B = Number(B); 
+	}	
+}
+
+class Pixel {
+	constructor() {
+	this.hits = 0;
+	this.normal = 0.0;
+	this.R = 0;
+	this.G = 0;
+	this.B = 0;
+	}	
+}
+
+var weights = [];
+var pixels = [];
+
+function new_link()
+{
+	ct++;
+	console.log(ct);
+	var div1 = document.createElement("TR");
+	div1.id = "coeff" + ct;
+	div1.innerHTML = '<td><input class="rm" type="button" value="-" onclick="delIt(\'coeff'+ ct +'\');" /></td>';
+
+
+	/* append fields for values a - f */
+	for(var i=0; i < 6; i += 1) {
+		var coeff_elem = document.createElement("TD");
+		coeff_elem.innerHTML = '<input class="coeff" id="coeff'+ ct + '_' + i +'" size="3" type="number" step="any"/>';
+		div1.appendChild(coeff_elem);
+	}
+	
+	/* spacer */
+	var bk = document.createElement("TD");
+	bk.innerHTML = "|";
+	div1.appendChild(bk)
+
+	/* RGB */
+	for(var i=0; i < 3; i += 1) {
+		var coeff_elem = document.createElement("TD");
+		coeff_elem.innerHTML = '<input class="rgb" id="coeff'+ ct + '_col' + i +'" size="3" type="number" step="1" min="0" max="255" onchange="rgb_update('+ ct + ');"/>';
+		div1.appendChild(coeff_elem);
+	}
+
+	var swatch_elem = document.createElement("TD");
+	swatch_elem.id = "sw" + ct;
+	div1.appendChild(swatch_elem);	
+
+	document.getElementById('newlink').appendChild(div1);
+	coeff_init(ct);
+}
+
+
+// function to delete the newly added set of elements
+function delIt(eleId)
+{
+	d = document;
+	var ele = d.getElementById(eleId);
+	var parentEle = d.getElementById('newlink');
+	parentEle.removeChild(ele);
+}
+
+//return random float in range [lo, hi)
+//hi bound not inclusive
+function rand(lo, hi) {
+	return ((Math.random() * (hi-lo)) + lo);
+}
+
+function gamma_log(gamma) {
+	var most = 0.0;
+	for(var i=0; i<pixels.length; i++) {
+		if(pixels[i].hits != 0) {
+			pixels[i].normal = Math.log(pixels[i].hits);
+			most = Math.max(most, pixels[i].normal);
+		} else {
+			pixels[i].normal = 0.0;
+		}
+	}
+	if(most <= 0.0) { most = 1.0; }
+	for(var i=0; i<pixels.length; i++) {
+		pixels[i].normal /= most;
+		pixels[i].R = Math.floor(pixels[i].R * Math.pow(pixels[i].normal, 1.0/gamma));
+		pixels[i].G = Math.floor(pixels[i].G * Math.pow(pixels[i].normal, 1.0/gamma));
+		pixels[i].B = Math.floor(pixels[i].B * Math.pow(pixels[i].normal, 1.0/gamma));
+	}
+}
+
+//return random whole integer in range [lo, hi)
+//hi bound not inclusive
+function randInt(lo, hi) { 
+	return Math.floor(Math.random() * (hi-lo) + lo);
+}
+
+function coeff_init(num) {
+	d = document.getElementById(num);
+
+	for(var i=0; i < 6; i += 1) {
+		var d = document.getElementById("coeff" + num + "_" + i);
+		d.value = rand(-1.5, 1.5).toPrecision(5);
+	}
+
+	var r = randInt(0, 256);
+	var g = randInt(0, 256);
+	var b = randInt(0, 256);
+	document.getElementById("coeff" + num + "_col0").value = r;
+	document.getElementById("coeff" + num + "_col1").value = g;
+	document.getElementById("coeff" + num + "_col2").value = b;
+
+	document.getElementById("sw" + num).style.backgroundColor = "rgb("+r+","+g+","+b+")";
+
+}
+
+function rgb_update(id) {
+	var r = document.getElementById("coeff" + id + "_col0").value;
+	var g = document.getElementById("coeff" + id + "_col1").value;
+	var b = document.getElementById("coeff" + id + "_col2").value;
+	document.getElementById("sw" + id).style.backgroundColor = "rgb("+r+","+g+","+b+")";
+}
+
+function reduce(sup, xres, yres) {
+	xres /= sup;
+	yres /= sup;
+	var new_pixels = new Array(xres*yres);
+	for(var x=0; x<xres; x++) {
+		for(var y=0; y<yres; y++) {
+			var pix = new Pixel();
+			for(var dy=0; dy<sup; dy++) {
+				for(var dx=0; dx<sup; dx++) {
+					var idx = (y*sup+dy)*(xres*sup) + (x*sup+dx);
+					pix.R += pixels[idx].R;
+					pix.G += pixels[idx].G;	
+					pix.B += pixels[idx].B;				
+				}
+			}
+			pix.R = Math.floor(pix.R / (sup*sup));
+			pix.G = Math.floor(pix.G / (sup*sup));
+			pix.B = Math.floor(pix.B / (sup*sup));
+			new_pixels[y*xres+x] = pix;
+		}
+	}
+	pixels = new_pixels.slice();
+}
+
+function weight_percent() {
+	var sum = 0.0;	
+	for(var i=0; i<9; i++) {
+		sum += Number(document.getElementById('t' + i).value);
+	}
+	for(var i=0; i<9; i++) {
+		var val = document.getElementById('t' + i).value;
+		document.getElementById('t' + i + '_val').innerHTML = String(Math.round(val/sum*100.0,2));
+	}
+}
+
+function w_table() {
+	var choices = [];
+	for(var i=0; i<9; i++) {
+		for(var j=0; j < Number(document.getElementById('t' + i).value); j++) {
+			choices.push(i);
+		}
+	}
+	console.log(choices);
+	return choices;
+}
+
+function render() {
+	var canvas = document.createElement('canvas');
+	var ctx;
+	var image = new Image();
+	var choices = w_table();
+	get_coeff_table();
+	var w, k=0;
+
+
+	var xmin = Number(document.getElementById('xmin').value);
+	var xmax = Number(document.getElementById('xmax').value);
+	var ymin = Number(document.getElementById('ymin').value);
+	var ymax = Number(document.getElementById('ymax').value);
+	var xres = Number(document.getElementById('xres').value);
+	var yres = Number(document.getElementById('yres').value);
+	var samp = Number(document.getElementById('samp').value);
+	var itt  = Number(document.getElementById('itt').value);
+	var sym  = Number(document.getElementById('sym').value);
+	var sup  = Number(document.getElementById('sup').value);
+	var gamma= Number(document.getElementById('gamma').value);
+	var invert = document.getElementById('invert').checked;
+	var ranx = xmax - xmin;
+	var rany = ymax - ymin;
+	var radius, theta2;
+
+	canvas.width = xres*sup;
+	canvas.height = yres*sup;
+
+	pixels = []; //reset
+	for(var i=0; i < canvas.width*canvas.height; i++) {
+		pixels.push(new Pixel());
+	}
+
+	for(var s=0; s < samp; s++) {
+		var nx = rand(xmin, xmax);
+		var ny = rand(ymin, ymax);
+		for(var step=-20; step < itt; step++) {
+
+			k++;
+			k = k % choices.length;
+			w = weights[randInt(0, weights.length)];
+
+			var x = w.a * nx + w.b * ny + w.c;
+	  		var y = w.d * nx + w.e * ny + w.f;
+
+			switch(choices[k]) {
+	    		case 0:		/* Linear */
+	      			nx = x;
+	      			ny = y;
+	      			break;
+	    		case 1:		/* Sinusoidal */
+	      			nx = Math.sin(x);
+	      			ny = Math.sin(y);
+	      			break;
+	    		case 2:		/* Spherical */
+	      			radius = 1.0 / (x * x + y * y);
+	      			nx = radius * x;
+	      			ny = radius * y;
+	      			break;
+	    		case 3:		/* Swirl */
+	     			radius = x * x + y * y;
+				  	nx = x * Math.sin(radius) - y * Math.cos(radius);
+				  	ny = x * Math.cos(radius) + y * Math.sin(radius);
+				 	break;
+				case 4:		/* Horseshoe */
+				 	radius = 1.0 / Math.sqrt(x * x + y * y);
+				 	nx = radius * (x - y) * (x + y);
+				 	ny = radius * 2.0 * x * y;
+				 	break;
+				case 5:		/* Polar */
+				 	nx = Math.atan2(y, x) / Math.PI;
+				 	ny = Math.sqrt(x * x + y * y) - 1.0;
+				  	break;
+				case 6:		/* Handkerchief */
+				  	radius = Math.sqrt (x * x + y * y);
+				  	theta2 = Math.atan2(y, x);
+				 	nx = radius * Math.sin(theta2 + radius);
+				 	ny = radius * Math.cos(theta2 - radius);
+				 	break;
+				case 7:		/* Heart */
+				  	radius = Math.sqrt(x * x + y * y);
+				  	theta2 = Math.atan2(y, x);
+				  	nx = radius * Math.sin(theta2 * radius);
+				  	ny = -radius * Math.cos(theta2 * radius);
+				  	break;
+				case 8:		/* Disk */
+				  	radius = Math.sqrt(x*x + y*y) * Math.PI;
+				  	theta2 = Math.atan2(y, x) / Math.PI;
+				  	nx = theta2 * Math.sin(radius);
+				  	ny = theta2 * Math.cos(radius);
+				  	break;
+				default:
+					break;
+			}
+
+
+
+			if(step > 0) {
+				var theta = 0.0;
+				var x_r, y_r;
+				for(var z=0; z<sym; z++) {
+					theta += 2.0 * Math.PI / sym;
+					x_r = nx * Math.cos(theta) - ny * Math.sin(theta);
+					y_r = nx * Math.sin(theta) + ny * Math.cos(theta);
+	
+					if(x_r >= xmin && x_r <= xmax && y_r >= ymin && y_r <= ymax) {
+						var x1 = Math.floor(canvas.width -  (((xmax - x_r) / ranx) * canvas.width));
+						var y1 = Math.floor(canvas.height - (((ymax - y_r) / rany) * canvas.height));
+	      				if (x1 >= 0 && x1 < canvas.width && y1 >= 0 && y1 < canvas.height) {
+								var idx = y1 * canvas.width + x1;
+								if(pixels[idx].hits == 0) {
+									pixels[idx].R = w.R;
+									pixels[idx].G = w.G;
+									pixels[idx].B = w.B;								
+								} else {
+									pixels[idx].R = Math.floor((pixels[idx].R + w.R)/2);
+									pixels[idx].G = Math.floor((pixels[idx].G + w.G)/2);
+									pixels[idx].B = Math.floor((pixels[idx].B + w.B)/2);
+								}
+								pixels[idx].hits += 1;
+						}
+					}
+				}			
+			
+			}
+		}
+
+	}
+
+	gamma_log(gamma);
+
+	if(sup > 1) {
+		reduce(sup, canvas.width, canvas.height); //cancel out super-sample
+		canvas.width = xres;
+		canvas.height = yres;
+	}
+
+	ctx	= canvas.getContext('2d');
+	ctx.drawImage(image, 0, 0);
+	var d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	for(var i = 0; i < d.data.length; i+=4) {
+		d.data[i]   = invert == true ? 255 - pixels[i/4].R : pixels[i/4].R;
+		d.data[i+1] = invert == true ? 255 - pixels[i/4].G : pixels[i/4].G;
+		d.data[i+2] = invert == true ? 255 - pixels[i/4].B : pixels[i/4].B;
+	    d.data[i+3] = 255; //alpha channel
+	}
+	ctx.putImageData(d,0,0);
+
+	//document.body.appendChild(canvas);
+	document.getElementById('out_png').src = canvas.toDataURL();
+}
+
+function get_coeff_table() {
+
+	weights = [];
+
+	var rows = document.getElementById("newlink").rows
+	for(var i=2; i < rows.length; i++) {
+		var idx = rows[i].id
+
+		let a, b, c, d, e, f, R, G, B = null;
+
+		a = document.getElementById(idx + '_0').value;
+		b = document.getElementById(idx + '_1').value;
+		c = document.getElementById(idx + '_2').value;
+		d = document.getElementById(idx + '_3').value;
+		e = document.getElementById(idx + '_4').value;
+		f = document.getElementById(idx + '_5').value;
+
+		R = document.getElementById(idx + '_col0').value;
+		G = document.getElementById(idx + '_col1').value;
+		B = document.getElementById(idx + '_col2').value;
+
+		weights.push(new Weight(a, b, c, d, e, f, R, G, B));
+
+	}
+
+	console.log(weights);
+}
+
+function page_setup() {
+	new_link(); //random default values
+	weight_percent();
+}
+
+</script>
+
+</body>
+</html>
