@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8"/>
+<title>Fractal Flame Explorer</title>
+<body>
+
+<style>
+
+canvas {
+	padding: 2px;
+	border-style: dotted;
+	border-width: 1px;
+	border-color: gray;
+}
+
+
+td { 
+	border: 0px;
+	overflow: hidden;
+	color: black;
+}
+
+tr:nth-child(2n+3) {
+	background: #f0f0f0;
+}
+
+tr:nth-child(even) {
+	background: #e3e0cc;
+}
+
+body {
+	background-color: #555555;
+}
+
+h1, h2, h3 {
+	color: #3e2222;
+	text-transform: capitalize;
+}
+
+.coeff {
+	width: 6em;
+}
+
+.weight {
+	width: 6em;
+}
+
+.rm {
+	width: 2em;
+}
+
+</style>
+<h1>Global Image Options</h1>
+<table>
+	<tr>
+		<th>Option</th>
+		<th>Setting</th>
+		<th>Option</th>
+		<th>Setting</th>
+	</tr>
+	<tr>
+		<td>X-axis minimum</td>
+		<td><input class="weight" id="xmin" type="number" value="-5"></td>
+		<td>X-axis maximum</td>
+		<td><input class="weight" id="xmax" type="number" value="5"></td>
+	</tr>
+	<tr>
+		<td>Y-axis minimum</td>
+		<td><input class="weight" id="ymin" type="number" value="-5"></td>
+		<td>Y-axis maximum</td>
+		<td><input class="weight" id="ymax" type="number" value="5"></td>
+	</tr>
+	<tr>
+		<td>X-axis resolution</td>
+		<td><input class="weight" id="xres" type="number" min="1" step="1" value="1000"></td>
+		<td>Y-axis resolution</td>
+		<td><input class="weight" id="yres" type="number" min="1" step="1" value="1000"></td>
+	</tr>
+	<tr>
+		<td>Samples</td>
+		<td><input class="weight" id="samp" type="number" value="500"></td>
+		<td>Iterations</td>
+		<td><input class="weight" id="itt" type="number" value="2000"></td>
+	</tr>
+	<tr>
+		<td>Symmetry axis</td>
+		<td><input class="weight" id="sym" type="number" value="1" min="1" step="1"></td>
+		<td>Supersample factor</td>
+		<td><input class="weight" id="sup" type="number" value="1" min="1" step="1"></td>
+	</tr>
+	<tr>
+		<td>Invert colors</td>
+		<td><input class="weight" id="invert" type="checkbox"></td>
+		<td>Gamma factor</td>
+		<td><input class="weight" id="gamma" type="number" value="2.2" min="1.0"></td>
+	</tr>
+	
+</table>
+
+<h1>Color Options</h1>
+<table>
+	<tbody>
+		<tr>
+			<th></th>
+			<th colspan="5">Color Palette</th>
+		</tr>
+		<tr>
+			<th>&nbsp;</th>
+			<th>a</th>
+			<th>b</th>
+			<th>c</th>
+			<th>d</th>
+		</tr>
+		<tr>
+			<th>r</th>
+			<td><input value="0.5" class="coeff" id="a_r" size="3" type="number" step="any"/></td>
+			<td><input value="0.5" class="coeff" id="b_r" size="3" type="number" step="any"/></td>
+			<td><input value="1.0" class="coeff" id="c_r" size="3" type="number" step="any"/></td>
+			<td><input value="0.3" class="coeff" id="d_r" size="3" type="number" step="any"/></td>
+		</tr>
+		<tr>
+			<th>g</th>
+			<td><input value="0.5" class="coeff" id="a_g" size="3" type="number" step="any"/></td>
+			<td><input value="0.5" class="coeff" id="b_g" size="3" type="number" step="any"/></td>
+			<td><input value="1.0" class="coeff" id="c_g" size="3" type="number" step="any"/></td>
+			<td><input value="0.2" class="coeff" id="d_g" size="3" type="number" step="any"/></td>
+		</tr>
+		<tr>
+			<th>b</th>
+			<td><input value="0.5" class="coeff" id="a_b" size="3" type="number" step="any"/></td>
+			<td><input value="0.5" class="coeff" id="b_b" size="3" type="number" step="any"/></td>
+			<td><input value="1.0" class="coeff" id="c_b" size="3" type="number" step="any"/></td>
+			<td><input value="0.2" class="coeff" id="d_b" size="3" type="number" step="any"/></td>
+		</tr>
+	</tbody>
+</table>
+
+<h1>Transform Parameters</h1>
+<table>
+	<tbody id="newlink">
+		<tr>
+			<th></th>
+			<th colspan="8">Transform Coefficients</th>
+		</tr>
+		<tr>
+			<td><input class="rm" type="button" value="+" onclick="new_link();"/></td>
+			<th>a</th>
+			<th>b</th>
+			<th>c</th>
+			<th>d</th>
+			<th>e</th>
+			<th>f</th>
+			<th>g</th>
+			<th>h</th>
+		</tr>
+	</tbody>
+</table>
+
+<input type="button" id="render" value="render" onclick="render();" />
+<br/>
+<br/>
+
+<img src='' id="out_png" />
+
+
+<script>
+var ct = 0;
+window.onload = page_setup();
+
+class Weight {
+	constructor(a, b, c, d, e, f, g, h) {
+	this.a = Number(a);
+	this.b = Number(b);
+	this.c = Number(c);
+	this.d = Number(d);
+	this.e = Number(e);
+	this.f = Number(f);
+	this.g = Number(g);
+	this.h = Number(h);
+	}	
+}
+
+class Pixel {
+	constructor() {
+	this.hits = 0;
+	this.normal = 0.0;
+	this.R = 0;
+	this.G = 0;
+	this.B = 0;
+	}	
+}
+
+var weights = [];
+var pixels = [];
+
+function new_link()
+{
+	ct++;
+	console.log(ct);
+	var div1 = document.createElement("TR");
+	div1.id = "coeff" + ct;
+	div1.innerHTML = '<td><input class="rm" type="button" value="-" onclick="delIt(\'coeff'+ ct +'\');" /></td>';
+
+
+	/* append fields for values a - f */
+	for(var i=0; i < 8; i += 1) {
+		var coeff_elem = document.createElement("TD");
+		coeff_elem.innerHTML = '<input class="coeff" id="coeff'+ ct + '_' + i +'" size="3" type="number" step="any"/>';
+		div1.appendChild(coeff_elem);
+	}
+	
+	document.getElementById('newlink').appendChild(div1);
+	coeff_init(ct);
+}
+
+
+// function to delete the newly added set of elements
+function delIt(eleId)
+{
+	d = document;
+	var ele = d.getElementById(eleId);
+	var parentEle = d.getElementById('newlink');
+	parentEle.removeChild(ele);
+}
+
+//return random float in range [lo, hi)
+//hi bound not inclusive
+function rand(lo, hi) {
+	return ((Math.random() * (hi-lo)) + lo);
+}
+
+function get_f_color(t) {
+
+	d = document;
+	
+	var a_r = Number(d.getElementById('a_r').value);
+	var a_b = Number(d.getElementById('a_b').value);
+	var a_g = Number(d.getElementById('a_g').value);
+
+	var b_r = Number(d.getElementById('b_r').value);
+	var b_b = Number(d.getElementById('b_b').value);
+	var b_g = Number(d.getElementById('b_g').value);
+
+	var c_r = Number(d.getElementById('c_r').value);
+	var c_b = Number(d.getElementById('c_b').value);
+	var c_g = Number(d.getElementById('c_g').value);
+
+	var d_r = Number(d.getElementById('d_r').value);
+	var d_b = Number(d.getElementById('d_b').value);
+	var d_g = Number(d.getElementById('d_g').value);
+
+    /* t2 = c * t */
+    var t2x = c_r * t;
+	var t2y = c_g * t;
+	var t2z = c_b * t;
+
+    /* t2 = c * t + d  */
+    t2x += d_r;
+	t2y += d_g;
+	t2z += d_b;
+
+    /* t2 = 2pi * [c * t + d]  */
+
+	t2x *= Math.PI * 2.;
+	t2y *= Math.PI * 2.;
+	t2z *= Math.PI * 2.;
+
+	/* t2 = cos( 2pi * [c * t + d] )*/
+	t2x = Math.cos(t2x);
+	t2y = Math.cos(t2y);
+	t2z = Math.cos(t2z);
+	
+    /* t2 = b times t2 */
+	t2x = b_r * t2x;
+	t2y = b_g * t2y;
+	t2z = b_b * t2z;
+
+    /* t1 = a + rest */
+	var t1x = a_r + t2x;
+	var t1y = a_g + t2y;
+	var t1z = a_b + t2z;
+
+	return [255. * t1x, g_out = 255. * t1y, b_out = 255. * t1z]
+}
+
+function gamma_log(gamma) {
+	var most = 0.0;
+	for(var i=0; i<pixels.length; i++) {
+		if(pixels[i].hits != 0) {
+			pixels[i].normal = Math.log(pixels[i].hits);
+			most = Math.max(most, pixels[i].normal);
+		} else {
+			pixels[i].normal = 0.0;
+		}
+	}
+	if(most <= 0.0) { most = 1.0; }
+	for(var i=0; i<pixels.length; i++) {		
+		pixels[i].normal /= most;
+		var res = get_f_color(pixels[i].normal);
+		pixels[i].R = Math.floor(res[0], 1.0/gamma);
+		pixels[i].G = Math.floor(res[1], 1.0/gamma);
+		pixels[i].B = Math.floor(res[2], 1.0/gamma);
+	}
+}
+
+//return random whole integer in range [lo, hi)
+//hi bound not inclusive
+function randInt(lo, hi) { 
+	return Math.floor(Math.random() * (hi-lo) + lo);
+}
+
+function coeff_init(num) {
+	d = document.getElementById(num);
+
+	for(var i=0; i < 8; i += 1) {
+		var d = document.getElementById("coeff" + num + "_" + i);
+		d.value = rand(-3, 3).toPrecision(5);
+	}
+}
+
+
+function reduce(sup, xres, yres) {
+	xres /= sup;
+	yres /= sup;
+	var new_pixels = new Array(xres*yres);
+	for(var x=0; x<xres; x++) {
+		for(var y=0; y<yres; y++) {
+			var pix = new Pixel();
+			for(var dy=0; dy<sup; dy++) {
+				for(var dx=0; dx<sup; dx++) {
+					var idx = (y*sup+dy)*(xres*sup) + (x*sup+dx);
+					pix.R += pixels[idx].R;
+					pix.G += pixels[idx].G;	
+					pix.B += pixels[idx].B;				
+				}
+			}
+			pix.R = Math.floor(pix.R / (sup*sup));
+			pix.G = Math.floor(pix.G / (sup*sup));
+			pix.B = Math.floor(pix.B / (sup*sup));
+			new_pixels[y*xres+x] = pix;
+		}
+	}
+	pixels = new_pixels.slice();
+}
+
+function render() {
+	var canvas = document.createElement('canvas');
+	var ctx;
+	var image = new Image();
+	get_coeff_table();
+	var w, k=0;
+
+
+	var xmin = Number(document.getElementById('xmin').value);
+	var xmax = Number(document.getElementById('xmax').value);
+	var ymin = Number(document.getElementById('ymin').value);
+	var ymax = Number(document.getElementById('ymax').value);
+	var xres = Number(document.getElementById('xres').value);
+	var yres = Number(document.getElementById('yres').value);
+	var samp = Number(document.getElementById('samp').value);
+	var itt  = Number(document.getElementById('itt').value);
+	var sym  = Number(document.getElementById('sym').value);
+	var sup  = Number(document.getElementById('sup').value);
+	var gamma= Number(document.getElementById('gamma').value);
+	var invert = document.getElementById('invert').checked;
+	var ranx = xmax - xmin;
+	var rany = ymax - ymin;
+	var radius, theta2;
+
+	canvas.width = xres*sup;
+	canvas.height = yres*sup;
+
+	pixels = []; //reset
+	for(var i=0; i < canvas.width*canvas.height; i++) {
+		pixels.push(new Pixel());
+	}
+
+	for(var s=0; s < samp; s++) {
+		var nx = rand(xmin, xmax);
+		var ny = rand(ymin, ymax);
+		for(var step=-20; step < itt; step++) {
+
+			k++;
+			k = k % weights.length;
+			w = weights[randInt(0, weights.length)];
+
+			var x =	w.a * Math.sin(w.b * ny) + w.c * Math.cos(w.d * nx);
+			var y = w.e * Math.sin(w.f * nx) + w.g * Math.cos(w.h * ny);
+
+		    nx = x;
+		    ny = y;
+
+			if(step > 0) {
+				var theta = 0.0;
+				var x_r, y_r;
+				for(var z=0; z<sym; z++) {
+					theta += 2.0 * Math.PI / sym;
+					x_r = nx * Math.cos(theta) - ny * Math.sin(theta);
+					y_r = nx * Math.sin(theta) + ny * Math.cos(theta);
+	
+					if(x_r >= xmin && x_r <= xmax && y_r >= ymin && y_r <= ymax) {
+						var x1 = Math.floor(canvas.width -  (((xmax - x_r) / ranx) * canvas.width));
+						var y1 = Math.floor(canvas.height - (((ymax - y_r) / rany) * canvas.height));
+	      				if (x1 >= 0 && x1 < canvas.width && y1 >= 0 && y1 < canvas.height) {
+								var idx = y1 * canvas.width + x1;
+								if(pixels[idx].hits == 0) {
+									pixels[idx].R = w.R;
+									pixels[idx].G = w.G;
+									pixels[idx].B = w.B;								
+								} else {
+									pixels[idx].R = Math.floor((pixels[idx].R + w.R)/2);
+									pixels[idx].G = Math.floor((pixels[idx].G + w.G)/2);
+									pixels[idx].B = Math.floor((pixels[idx].B + w.B)/2);
+								}
+								pixels[idx].hits += 1;
+						}
+					}
+				}			
+			}
+		}
+	}
+
+	gamma_log(gamma);
+
+	if(sup > 1) {
+		reduce(sup, canvas.width, canvas.height); //cancel out super-sample
+		canvas.width = xres;
+		canvas.height = yres;
+	}
+
+	ctx	= canvas.getContext('2d');
+	ctx.drawImage(image, 0, 0);
+	var d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	for(var i = 0; i < d.data.length; i+=4) {
+		d.data[i]   = invert == true ? 255 - pixels[i/4].R : pixels[i/4].R;
+		d.data[i+1] = invert == true ? 255 - pixels[i/4].G : pixels[i/4].G;
+		d.data[i+2] = invert == true ? 255 - pixels[i/4].B : pixels[i/4].B;
+	    d.data[i+3] = 255; //alpha channel
+	}
+	ctx.putImageData(d,0,0);
+
+	//document.body.appendChild(canvas);
+	document.getElementById('out_png').src = canvas.toDataURL();
+}
+
+function get_coeff_table() {
+
+	weights = [];
+
+	var rows = document.getElementById("newlink").rows
+	for(var i=2; i < rows.length; i++) {
+		var idx = rows[i].id
+
+		let a, b, c, d, e, f, g, h = null;
+
+		a = document.getElementById(idx + '_0').value;
+		b = document.getElementById(idx + '_1').value;
+		c = document.getElementById(idx + '_2').value;
+		d = document.getElementById(idx + '_3').value;
+		e = document.getElementById(idx + '_4').value;
+		f = document.getElementById(idx + '_5').value;
+		g = document.getElementById(idx + '_6').value;
+		h = document.getElementById(idx + '_7').value;
+
+		weights.push(new Weight(a, b, c, d, e, f, g, h));
+
+	}
+
+	console.log(weights);
+}
+
+function page_setup() {
+	new_link(); //random default values
+}
+
+</script>
+
+</body>
+</html>
+
